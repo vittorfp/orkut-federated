@@ -15,6 +15,7 @@ This repository currently contains research and planning documents, not a
 working social network:
 
 - [Initial implementation plan](docs/initial-plan.md)
+- [Fractal delivery roadmap](docs/plans/README.md)
 - [Viability and prior-art research](docs/research/orkut-viability.md)
 
 The public product name, visual identity, and domain remain subject to legal
