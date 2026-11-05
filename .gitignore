@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local editor and agent tooling
+.DS_Store
+.idea/
+.vscode/
+.context/

@@ -1,0 +1,10 @@
+{
+  "config": {
+    // Preserve the supplied research document's prose and compact tables.
+    "MD013": false,
+    "MD032": false,
+    "MD036": false,
+    "MD040": false,
+    "MD060": false
+  }
+}
