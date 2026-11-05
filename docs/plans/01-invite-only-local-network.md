@@ -7,6 +7,9 @@ publish public text posts, and read a deterministic chronological feed.
 
 ## Work packages
 
+Each work package is decomposed further in the
+[MVP 1 fractal plan](mvp-1/README.md).
+
 1. **Domain schema:** users, immutable handles, profiles, invitations, posts,
    friendships, blocks, reports, and audit events with database constraints.
 2. **Minimal authentication:** verified email/password, sessions, logout, and

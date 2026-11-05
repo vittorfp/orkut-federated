@@ -5,9 +5,13 @@ describe("readServerEnvironment", () => {
   it("accepts a PostgreSQL URL and applies the default log level", () => {
     expect(
       readServerEnvironment({
+        BETTER_AUTH_SECRET: "test-secret-that-is-at-least-32-characters",
+        BETTER_AUTH_URL: "http://localhost:3000",
         DATABASE_URL: "postgres://user:password@localhost:5432/database",
       }),
     ).toEqual({
+      BETTER_AUTH_SECRET: "test-secret-that-is-at-least-32-characters",
+      BETTER_AUTH_URL: "http://localhost:3000",
       DATABASE_URL: "postgres://user:password@localhost:5432/database",
       LOG_LEVEL: "info",
     });
@@ -15,7 +19,11 @@ describe("readServerEnvironment", () => {
 
   it("rejects a non-PostgreSQL database URL", () => {
     expect(() =>
-      readServerEnvironment({ DATABASE_URL: "https://example.com/database" }),
+      readServerEnvironment({
+        BETTER_AUTH_SECRET: "test-secret-that-is-at-least-32-characters",
+        BETTER_AUTH_URL: "http://localhost:3000",
+        DATABASE_URL: "https://example.com/database",
+      }),
     ).toThrow();
   });
 });
