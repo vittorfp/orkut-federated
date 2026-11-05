@@ -49,6 +49,33 @@ The first review is focused on the research and architecture. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for the questions where feedback will be
 most useful.
 
+## Development
+
+MVP 0 requires Node.js 22, Corepack, and Docker. From a fresh clone:
+
+```sh
+cp apps/web/.env.example apps/web/.env.local
+corepack enable
+corepack pnpm install
+docker compose up -d postgres
+corepack pnpm db:migrate
+corepack pnpm dev
+```
+
+The web application runs at `http://localhost:3000`. Process liveness is
+available at `/api/health/live`; database-backed readiness is available at
+`/api/health/ready`. Start the separate worker process with
+`corepack pnpm worker`.
+
+Run the local quality gate with:
+
+```sh
+corepack pnpm lint
+corepack pnpm typecheck
+corepack pnpm test
+corepack pnpm build
+```
+
 ## License
 
 This repository is licensed under the GNU Affero General Public License v3.0.
