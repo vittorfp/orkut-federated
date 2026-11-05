@@ -64,7 +64,7 @@ CREATE TABLE "profiles" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "profiles_handle_normalized" CHECK ("profiles"."handle" = lower("profiles"."handle")),
-	CONSTRAINT "profiles_handle_format" CHECK ("profiles"."handle" ~ '^[a-z][a-z0-9_]{2,29}$'),
+	CONSTRAINT "profiles_handle_format" CHECK ("profiles"."handle" ~ '^[A-Za-z][A-Za-z0-9_]{2,29}$'),
 	CONSTRAINT "profiles_public_name_length" CHECK (char_length("profiles"."public_name") between 1 and 100),
 	CONSTRAINT "profiles_bio_length" CHECK (char_length("profiles"."bio") <= 1000),
 	CONSTRAINT "profiles_location_length" CHECK (char_length("profiles"."location") <= 100),

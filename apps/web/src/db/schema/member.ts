@@ -37,7 +37,10 @@ export const profiles = pgTable(
   (table) => [
     uniqueIndex("profiles_handle_unique").on(table.handle),
     check("profiles_handle_normalized", sql`${table.handle} = lower(${table.handle})`),
-    check("profiles_handle_format", sql`${table.handle} ~ '^[a-z][a-z0-9_]{2,29}$'`),
+    check(
+      "profiles_handle_format",
+      sql`${table.handle} ~ '^[A-Za-z][A-Za-z0-9_]{2,29}$'`,
+    ),
     check(
       "profiles_public_name_length",
       sql`char_length(${table.publicName}) between 1 and 100`,

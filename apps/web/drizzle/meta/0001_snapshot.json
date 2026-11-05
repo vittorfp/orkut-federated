@@ -513,7 +513,7 @@
         },
         "profiles_handle_format": {
           "name": "profiles_handle_format",
-          "value": "\"profiles\".\"handle\" ~ '^[a-z][a-z0-9_]{2,29}$'"
+          "value": "\"profiles\".\"handle\" ~ '^[A-Za-z][A-Za-z0-9_]{2,29}$'"
         },
         "profiles_public_name_length": {
           "name": "profiles_public_name_length",
