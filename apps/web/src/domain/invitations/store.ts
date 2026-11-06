@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
 import { invitations, members } from "@/db/schema";
 
@@ -93,6 +93,8 @@ export function createDrizzleInvitationStore(
               eq(invitations.id, invitationId),
               eq(invitations.inviterUserId, inviterUserId),
               isNull(invitations.revokedAt),
+              gt(invitations.expiresAt, sql`now()`),
+              lt(invitations.useCount, invitations.maxUses),
             ),
           )
           .returning({ id: invitations.id });

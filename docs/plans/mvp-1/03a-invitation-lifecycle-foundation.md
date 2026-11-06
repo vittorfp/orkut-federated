@@ -16,7 +16,7 @@ without exposing a registration endpoint or persisting their plaintext value.
    logs.
 5. Preview only a generic available/unavailable result without inviter or
    usage metadata.
-6. Permit an active owner to revoke an unrevoked invitation exactly once.
+6. Permit an active owner to revoke an available invitation exactly once.
 7. Exercise code, policy, authorization, lifecycle, and PostgreSQL invariants.
 
 ## Gate
@@ -25,6 +25,7 @@ without exposing a registration endpoint or persisting their plaintext value.
   named constraint.
 - Inactive members cannot issue or revoke invitations.
 - A non-owner cannot revoke an invitation.
+- Expired or exhausted invitations cannot transition to revoked.
 - Tests prove stored records do not contain the plaintext code.
 - No account, profile, public endpoint, UI, or redemption workflow is created
   in this slice.

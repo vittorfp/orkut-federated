@@ -175,7 +175,19 @@ try {
     `,
   );
 
+  await sql`
+    update invitations set use_count = max_uses where id = ${firstInvitationId}
+  `;
+
   const invitationService = getInvitationService();
+  if (
+    await invitationService.revoke({
+      invitationId: firstInvitationId,
+      inviterUserId: firstUserId,
+    })
+  ) {
+    throw new Error("invitation service revoked an exhausted invitation");
+  }
   const serviceIssued = await invitationService.issue({
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     inviterUserId: firstUserId,

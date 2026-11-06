@@ -38,7 +38,9 @@ class MemoryInvitationStore implements InvitationStore {
       (item) =>
         item.id === input.invitationId &&
         item.inviterUserId === input.inviterUserId &&
-        item.revokedAt === null,
+        item.revokedAt === null &&
+        item.expiresAt > now &&
+        item.useCount < item.maxUses,
     );
     if (!invitation) return false;
     invitation.revokedAt = now;
@@ -160,6 +162,33 @@ describe("invitation service", () => {
     expect(
       await service.revoke({
         invitationId: issued.invitation.id,
+        inviterUserId: "active-user",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not revoke expired or exhausted invitations", async () => {
+    const expired = await service.issue({
+      expiresAt: new Date("2026-11-06T12:00:00.001Z"),
+      inviterUserId: "active-user",
+    });
+    const available = store.invitations.find(
+      (invitation) => invitation.id === expired.invitation.id,
+    );
+    if (!available) throw new Error("test invitation was not stored");
+    available.expiresAt = now;
+    expect(
+      await service.revoke({
+        invitationId: expired.invitation.id,
+        inviterUserId: "active-user",
+      }),
+    ).toBe(false);
+
+    available.expiresAt = new Date("2026-11-07T12:00:00.000Z");
+    available.useCount = available.maxUses;
+    expect(
+      await service.revoke({
+        invitationId: expired.invitation.id,
         inviterUserId: "active-user",
       }),
     ).toBe(false);
