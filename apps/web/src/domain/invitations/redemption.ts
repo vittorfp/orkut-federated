@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { validateHandle } from "@/domain/handles";
+import {
+  type AuditRecorder,
+  createDrizzleAuditRecorder,
+  tryRecordAudit,
+} from "@/lib/audit";
 import { readServerEnvironment } from "@/lib/env";
+import {
+  createDrizzleRateLimitStore,
+  createRateLimiter,
+  enforceRateLimit,
+  hashRateLimitValue,
+  ipRangeKey,
+  RateLimitExceededError,
+  type RateLimiter,
+  type RateLimitPolicy,
+} from "@/lib/rate-limit";
 import { digestInvitationCode } from "./code";
 import { createDrizzleRedemptionStore, type RedemptionStore } from "./redemption-store";
 
@@ -11,12 +26,31 @@ const MAX_PASSWORD_LENGTH = 128;
 const MAX_PUBLIC_NAME_LENGTH = 100;
 
 export type RedeemInvitationInput = {
+  clientIp?: string;
   code: string;
   email: string;
   handle: string;
   password: string;
   publicName: string;
 };
+
+export const REDEMPTION_RATE_LIMITS = {
+  digest: {
+    bucket: "invitation.redemption.digest",
+    limit: 30,
+    windowSeconds: 5 * 60,
+  },
+  endpoint: {
+    bucket: "invitation.redemption.endpoint",
+    limit: 600,
+    windowSeconds: 60,
+  },
+  ipRange: {
+    bucket: "invitation.redemption.ip_range",
+    limit: 20,
+    windowSeconds: 10 * 60,
+  },
+} as const satisfies Record<string, Omit<RateLimitPolicy, "key">>;
 
 export type RedemptionService = {
   redeem(input: RedeemInvitationInput): Promise<{ userId: string }>;
@@ -38,7 +72,9 @@ export class RedemptionError extends Error {
 }
 
 type RedemptionServiceDependencies = {
+  audit?: AuditRecorder;
   hashKey: string;
+  limiter?: RateLimiter;
   store: RedemptionStore;
 };
 
@@ -47,32 +83,69 @@ function normalizePublicName(input: string): string {
 }
 
 export function createRedemptionService({
+  audit,
   hashKey,
+  limiter,
   store,
 }: RedemptionServiceDependencies): RedemptionService {
+  async function rejection(reason: RedemptionErrorCode): Promise<RedemptionError> {
+    await tryRecordAudit(audit, {
+      action: "invitation.redemption",
+      detail: { reason },
+      outcome: "rejected",
+    });
+    return new RedemptionError(reason);
+  }
+
   return {
     async redeem(input) {
+      try {
+        await enforceRateLimit(limiter, {
+          ...REDEMPTION_RATE_LIMITS.endpoint,
+          key: "global",
+        });
+        await enforceRateLimit(limiter, {
+          ...REDEMPTION_RATE_LIMITS.digest,
+          key: hashRateLimitValue(input.code, hashKey),
+        });
+        if (input.clientIp) {
+          await enforceRateLimit(limiter, {
+            ...REDEMPTION_RATE_LIMITS.ipRange,
+            key: hashRateLimitValue(ipRangeKey(input.clientIp), hashKey),
+          });
+        }
+      } catch (error) {
+        if (error instanceof RateLimitExceededError) {
+          await tryRecordAudit(audit, {
+            action: "invitation.redemption",
+            detail: { retryAfterSeconds: error.retryAfterSeconds },
+            outcome: "rate_limited",
+          });
+        }
+        throw error;
+      }
+
       if (!INVITATION_CODE_PATTERN.test(input.code)) {
-        throw new RedemptionError("invitation_unavailable");
+        throw await rejection("invitation_unavailable");
       }
 
       const email = input.email.trim().toLowerCase();
       if (!z.email().safeParse(email).success) {
-        throw new RedemptionError("invalid_email");
+        throw await rejection("invalid_email");
       }
       if (
         input.password.length < MIN_PASSWORD_LENGTH ||
         input.password.length > MAX_PASSWORD_LENGTH
       ) {
-        throw new RedemptionError("invalid_password");
+        throw await rejection("invalid_password");
       }
 
       const handle = validateHandle(input.handle);
-      if (!handle.valid) throw new RedemptionError("invalid_handle");
+      if (!handle.valid) throw await rejection("invalid_handle");
 
       const publicName = normalizePublicName(input.publicName);
       if (publicName.length < 1 || publicName.length > MAX_PUBLIC_NAME_LENGTH) {
-        throw new RedemptionError("invalid_public_name");
+        throw await rejection("invalid_public_name");
       }
 
       const result = await store.redeem({
@@ -85,10 +158,18 @@ export function createRedemptionService({
 
       if (!result.ok) {
         if (result.reason === "invitation_unavailable") {
-          throw new RedemptionError("invitation_unavailable");
+          throw await rejection("invitation_unavailable");
         }
-        throw new RedemptionError("identity_conflict");
+        throw await rejection("identity_conflict");
       }
+
+      await tryRecordAudit(audit, {
+        action: "invitation.redemption",
+        actorUserId: result.userId,
+        detail: {},
+        invitationId: result.invitationId,
+        outcome: "success",
+      });
 
       return { userId: result.userId };
     },
@@ -97,7 +178,9 @@ export function createRedemptionService({
 
 export function getRedemptionService(): RedemptionService {
   return createRedemptionService({
+    audit: createDrizzleAuditRecorder(),
     hashKey: readServerEnvironment().INVITATION_HASH_KEY,
+    limiter: createRateLimiter({ store: createDrizzleRateLimitStore() }),
     store: createDrizzleRedemptionStore(),
   });
 }

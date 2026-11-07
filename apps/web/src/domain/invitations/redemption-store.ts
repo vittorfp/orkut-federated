@@ -15,7 +15,7 @@ export type NewInvitationRedemption = {
 };
 
 export type RedemptionResult =
-  | { ok: true; userId: string }
+  | { ok: true; invitationId: string; userId: string }
   | {
       ok: false;
       reason: "email_conflict" | "handle_conflict" | "invitation_unavailable";
@@ -88,7 +88,7 @@ export function createDrizzleRedemptionStore(
             .returning({ id: invitations.id });
           if (!claimed) throw new Error("invitation use count was not claimed");
 
-          return { ok: true, userId: principal.id } as const;
+          return { ok: true, invitationId: invitation.id, userId: principal.id } as const;
         });
       } catch (error) {
         if (error instanceof PrincipalEmailConflictError) {

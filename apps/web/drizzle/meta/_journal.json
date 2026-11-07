@@ -22,6 +22,13 @@
       "when": 1793955605062,
       "tag": "0002_stale_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794060258484,
+      "tag": "0003_keen_omega_red",
+      "breakpoints": true
     }
   ]
 }

@@ -22,3 +22,18 @@ costs and an operator-visible security trail.
 Load tests demonstrate bounded request cost, audit events reconstruct an
 invitation incident without exposing bearer secrets, and the response runbook
 has a tested global-revocation procedure.
+
+## Implementation notes
+
+- `audit_events` and `rate_limit_counters` are created by
+  `0003_keen_omega_red.sql`.
+- Rate limits are enforced in the domain services with database-backed fixed
+  windows; codes and client addresses are HMAC-SHA-256 keys.
+- `docs/runbooks/invitation-abuse.md` documents the policy, retention,
+  operator queries, and break-glass commands.
+- `scripts/verify-abuse-controls.ts` is part of `db:verify` and exercises the
+  incident trail, secret redaction, counters, scoped global revocation, and
+  pruning.
+- The break-glass command is `security:revoke-invitations`; the daily cleanup
+  command is `security:prune`.
+

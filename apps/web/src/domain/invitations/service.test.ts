@@ -1,4 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import type { AuditEvent, AuditRecorder } from "@/lib/audit";
+import {
+  type RateLimitDecision,
+  RateLimitExceededError,
+  type RateLimiter,
+  type RateLimitPolicy,
+} from "@/lib/rate-limit";
 import { createInvitationService, InvitationPolicyError } from "./service";
 import type { InvitationRecord, InvitationStore, NewInvitation } from "./store";
 
@@ -52,6 +59,31 @@ class MemoryInvitationStore implements InvitationStore {
     invitation.revokedAt = now;
     return true;
   }
+}
+
+class MemoryAuditRecorder implements AuditRecorder {
+  events: AuditEvent[] = [];
+
+  async record(event: AuditEvent): Promise<void> {
+    this.events.push(event);
+  }
+}
+
+class MemoryRateLimiter implements RateLimiter {
+  policies: RateLimitPolicy[] = [];
+
+  constructor(private readonly allow: boolean) {}
+
+  async consume(policy: RateLimitPolicy): Promise<RateLimitDecision> {
+    this.policies.push(policy);
+    return {
+      allowed: this.allow,
+      remaining: this.allow ? 1 : 0,
+      retryAfterSeconds: 9,
+    };
+  }
+
+  async pruneExpired(): Promise<void> {}
 }
 
 describe("invitation service", () => {
@@ -223,5 +255,109 @@ describe("invitation service", () => {
         inviterUserId: "active-user",
       }),
     ).toBe(false);
+  });
+
+  it("records issue and revoke outcomes without secrets", async () => {
+    const audit = new MemoryAuditRecorder();
+    service = createInvitationService({
+      audit,
+      generateCode: () => code,
+      hashKey,
+      now: () => now,
+      store,
+    });
+
+    const issued = await service.issue({
+      expiresAt: new Date("2026-11-07T12:00:00.000Z"),
+      inviterUserId: "active-user",
+      maxUses: 3,
+    });
+    await service.revoke({
+      invitationId: issued.invitation.id,
+      inviterUserId: "active-user",
+    });
+    await expect(
+      service.issue({
+        expiresAt: new Date("2026-11-07T12:00:00.000Z"),
+        inviterUserId: "suspended-user",
+      }),
+    ).rejects.toEqual(new InvitationPolicyError("not_authorized"));
+
+    expect(audit.events).toHaveLength(3);
+    expect(audit.events[0]).toMatchObject({
+      action: "invitation.issue",
+      actorUserId: "active-user",
+      detail: { expiresInHours: 24, maxUses: 3 },
+      invitationId: issued.invitation.id,
+      outcome: "success",
+    });
+    expect(audit.events[1]).toMatchObject({
+      action: "invitation.revoke",
+      invitationId: issued.invitation.id,
+      outcome: "success",
+    });
+    expect(audit.events[2]).toMatchObject({
+      action: "invitation.issue",
+      actorUserId: "suspended-user",
+      detail: { reason: "not_authorized" },
+      outcome: "rejected",
+    });
+    const serialized = JSON.stringify(audit.events);
+    expect(serialized).not.toContain(code);
+    expect(serialized).not.toContain("digest");
+  });
+
+  it("audits rate-limited issue and revoke attempts before touching the store", async () => {
+    const audit = new MemoryAuditRecorder();
+    const limiter = new MemoryRateLimiter(false);
+    service = createInvitationService({
+      audit,
+      generateCode: () => code,
+      hashKey,
+      limiter,
+      now: () => now,
+      store,
+    });
+
+    await expect(
+      service.issue({
+        expiresAt: new Date("2026-11-07T12:00:00.000Z"),
+        inviterUserId: "active-user",
+      }),
+    ).rejects.toBeInstanceOf(RateLimitExceededError);
+    await expect(
+      service.revoke({
+        invitationId: "00000000-0000-4000-8000-000000000001",
+        inviterUserId: "active-user",
+      }),
+    ).rejects.toBeInstanceOf(RateLimitExceededError);
+
+    expect(store.invitations).toHaveLength(0);
+    expect(audit.events.map((event) => event.outcome)).toEqual([
+      "rate_limited",
+      "rate_limited",
+    ]);
+    expect(audit.events[0]?.detail).toMatchObject({ retryAfterSeconds: 9 });
+    expect(JSON.stringify(audit.events)).not.toContain(code);
+  });
+
+  it("rate-limits previews by endpoint and an opaque code digest", async () => {
+    const limiter = new MemoryRateLimiter(true);
+    service = createInvitationService({
+      generateCode: () => code,
+      hashKey,
+      limiter,
+      now: () => now,
+      store,
+    });
+
+    await service.preview(code);
+
+    expect(limiter.policies.map((policy) => policy.bucket)).toEqual([
+      "invitation.preview.endpoint",
+      "invitation.preview.digest",
+    ]);
+    expect(limiter.policies[1]?.key).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(limiter.policies)).not.toContain(code);
   });
 });
