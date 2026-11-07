@@ -1,6 +1,6 @@
 import { readServerEnvironment } from "@/lib/env";
 import { digestInvitationCode, generateInvitationCode } from "./code";
-import { classifyInvitation } from "./status";
+import { classifyInvitation, type InvitationAvailability } from "./status";
 import { createDrizzleInvitationStore, type InvitationStore } from "./store";
 
 const MAX_USES = 100;
@@ -24,8 +24,19 @@ export type IssuedInvitation = {
   };
 };
 
+export type ListedInvitation = {
+  createdAt: Date;
+  expiresAt: Date;
+  id: string;
+  maxUses: number;
+  revokedAt: Date | null;
+  status: InvitationAvailability;
+  useCount: number;
+};
+
 export type InvitationService = {
   issue(input: IssueInvitationInput): Promise<IssuedInvitation>;
+  listOwned(inviterUserId: string): Promise<ListedInvitation[]>;
   preview(code: string): Promise<{ available: boolean }>;
   revoke(input: { invitationId: string; inviterUserId: string }): Promise<boolean>;
 };
@@ -92,6 +103,22 @@ export function createInvitationService({
           ? classifyInvitation(invitation, now()) === "available"
           : false,
       };
+    },
+
+    async listOwned(inviterUserId) {
+      const listTime = now();
+      const records = await store.listOwned(inviterUserId);
+      // Rebuild each record explicitly so a store cannot leak code digests or
+      // future internal columns into a client payload.
+      return records.map((record) => ({
+        createdAt: record.createdAt,
+        expiresAt: record.expiresAt,
+        id: record.id,
+        maxUses: record.maxUses,
+        revokedAt: record.revokedAt,
+        status: classifyInvitation(record, listTime),
+        useCount: record.useCount,
+      }));
     },
 
     async revoke({ invitationId, inviterUserId }) {

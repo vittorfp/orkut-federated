@@ -20,7 +20,12 @@ export default async function MemberHomePage() {
           <h1 className="member-name">{member.publicName}</h1>
           <p className="member-handle">@{member.handle}</p>
         </div>
-        <SignOutButton />
+        <nav aria-label="Member tools" className="member-tools">
+          <Link className="primary-link" href="/invitations">
+            Invitations
+          </Link>
+          <SignOutButton />
+        </nav>
       </header>
 
       <section aria-labelledby="next-title" className="member-card">

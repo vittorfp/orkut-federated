@@ -21,3 +21,17 @@ through an accessible authenticated interface.
 
 No plaintext code appears after the issuance response, no digest reaches the
 browser, and another member cannot list or revoke the owner's invitations.
+
+## Implementation notes
+
+The page lives at `/invitations` behind `requireMember()`. Server actions derive
+the inviter from the session and never accept a user identifier from the
+client. Listing rebuilds each record explicitly in the service, so a store
+cannot leak digests or future internal columns to the browser.
+
+`verify-invitations.ts` covers owner-only listing, plaintext and digest
+exclusion, digest-at-rest verification, cross-member revocation rejection, and
+idempotent revocation. Keyboard navigation, labels, focus movement, and error
+announcements are implemented with native form controls, a fieldset/legend, and
+polite live regions; they remain part of manual release checks until a browser
+test harness is introduced.
