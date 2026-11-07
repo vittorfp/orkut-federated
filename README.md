@@ -11,12 +11,15 @@ invite-only beta for 100 trusted adults, delivered as a responsive web PWA.
 
 ## Project status
 
-This repository currently contains research and planning documents, not a
-working social network:
+The repository contains the executable MVP 0 foundation and the first MVP 1
+persistence slices. There is no user-facing social network yet: public sign-up
+is disabled, and the invitation lifecycle and redemption services have no
+public endpoint or UI.
 
 - [Initial implementation plan](docs/initial-plan.md)
 - [Fractal delivery roadmap](docs/plans/README.md)
 - [Viability and prior-art research](docs/research/orkut-viability.md)
+- [ADR 0003: transactional credential provisioning](docs/adr/0003-transactional-credential-provisioning.md)
 
 The public product name, visual identity, and domain remain subject to legal
 and trademark review.
@@ -74,6 +77,14 @@ corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test
 corepack pnpm build
+```
+
+With PostgreSQL running, verify the persistence and redemption invariants
+(`db:verify` runs both suites; `db:verify:redemption` runs only the
+two-connection concurrency and rollback suite):
+
+```sh
+corepack pnpm db:verify
 ```
 
 ## License
