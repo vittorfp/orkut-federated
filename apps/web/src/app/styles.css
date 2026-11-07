@@ -721,3 +721,402 @@ footer {
     width: 100%;
   }
 }
+
+/* Classic Orkut-inspired application shell and profile layout.
+   Layout ideas adapted from the MIT-licensed Alurakut and Orkut-Clone
+   projects; see THIRD_PARTY_NOTICES.md. */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-topbar {
+  background: linear-gradient(105deg, var(--accent-dark), var(--lavender));
+  color: var(--white);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-topbar-inner {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+  margin: 0 auto;
+  max-width: 1380px;
+  padding: 11px 32px;
+}
+
+.app-wordmark {
+  align-items: center;
+  color: var(--white);
+  display: inline-flex;
+  font-size: 1.12rem;
+  font-weight: 780;
+  gap: 10px;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-mark {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 800;
+  height: 32px;
+  letter-spacing: 0.04em;
+  place-items: center;
+  text-transform: uppercase;
+  width: 32px;
+}
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.app-nav a {
+  border-radius: 999px;
+  color: var(--white);
+  font-size: 0.94rem;
+  padding: 7px 12px;
+  text-decoration: none;
+}
+
+.app-nav a[aria-current="page"],
+.app-nav a:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.app-account {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.app-account-name {
+  font-size: 0.88rem;
+  font-weight: 650;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-account .secondary-button {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--white);
+  padding: 7px 12px;
+}
+
+.app-account .secondary-button:hover:not(:disabled) {
+  border-color: var(--white);
+}
+
+.topbar-link {
+  color: var(--white);
+  font-weight: 680;
+  text-underline-offset: 3px;
+}
+
+.app-main {
+  margin: 0 auto;
+  max-width: 1380px;
+  padding: 24px 32px 64px;
+}
+
+.orkut-columns {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+}
+
+.orkut-sidebar,
+.orkut-relations {
+  align-self: start;
+  display: grid;
+  gap: 16px;
+}
+
+.orkut-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.orkut-box-title {
+  background: linear-gradient(180deg, #f5f1f9, var(--lavender-soft));
+  border-bottom: 1px solid var(--border);
+  color: #4d3a68;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 780;
+  letter-spacing: 0.06em;
+  margin: 0;
+  padding: 9px 12px;
+  text-transform: uppercase;
+}
+
+.orkut-box-body {
+  padding: 14px;
+}
+
+.orkut-box-body > :last-child {
+  margin-bottom: 0;
+}
+
+.orkut-separator {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+.mini-profile {
+  text-align: center;
+}
+
+.initials-avatar {
+  background: linear-gradient(135deg, var(--lavender), var(--accent));
+  border-radius: 8px;
+  color: var(--white);
+  display: grid;
+  font-weight: 800;
+  margin: 0 auto 10px;
+  place-items: center;
+}
+
+.avatar-large {
+  font-size: 1.7rem;
+  height: 84px;
+  width: 84px;
+}
+
+.avatar-small {
+  font-size: 0.85rem;
+  height: 38px;
+  width: 38px;
+}
+
+.mini-profile-name {
+  font-weight: 760;
+  margin: 0;
+}
+
+.mini-profile-handle {
+  color: var(--muted);
+  font-size: 0.86rem;
+  margin: 2px 0 8px;
+}
+
+.mini-profile-meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 4px 0;
+}
+
+.mini-profile-link {
+  margin: 10px 0 0;
+}
+
+.mini-profile-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 740;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.interest-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.interest-list li {
+  background: var(--lavender-soft);
+  border-radius: 999px;
+  color: #4d3a68;
+  font-size: 0.76rem;
+  padding: 4px 8px;
+}
+
+.side-menu {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.side-menu a {
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.side-menu a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.orkut-feed {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-handle {
+  color: var(--muted);
+  font-weight: 650;
+  margin: 0 0 10px;
+}
+
+.profile-lede {
+  line-height: 1.65;
+  margin: 0 0 14px;
+}
+
+.profile-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 12px 0 0;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-actions .primary-link {
+  font-size: 0.95rem;
+  padding: 11px 18px;
+}
+
+.quick-actions .secondary-button {
+  align-items: center;
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.next-list {
+  display: grid;
+  gap: 6px;
+  line-height: 1.5;
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+.next-list.compact {
+  font-size: 0.88rem;
+  margin-top: 0;
+}
+
+.empty-note {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.relation-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.relation-placeholder {
+  aspect-ratio: 1;
+  background: #faf8fc;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+.relation-empty p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.orkut-box-body .invitations {
+  margin-top: 0;
+}
+
+.orkut-box-body .invitation-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.orkut-box-body .invitation-panel + .invitation-panel {
+  border-top: 1px solid var(--border);
+  margin-top: 22px;
+  padding-top: 22px;
+}
+
+@media (max-width: 1050px) {
+  .orkut-columns {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .orkut-relations {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .app-topbar-inner {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 11px 18px;
+  }
+
+  .app-nav {
+    margin-left: 0;
+    order: 3;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .app-account {
+    margin-left: auto;
+  }
+
+  .app-account-name {
+    display: none;
+  }
+
+  .app-main {
+    padding: 18px 16px 48px;
+  }
+
+  .orkut-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .orkut-relations {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+}

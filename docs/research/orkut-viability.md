@@ -120,15 +120,41 @@ From Wikipedia [verified, first 100k characters of the page]:
 
 ### 4.3 Human-written repos and components
 
+License audit refreshed on 7 Nov 2026 with the GitHub API. "No license" is
+not permissive: without an explicit license, default copyright applies and the
+code must not be copied.
+
 | Repo | Notes |
 |---|---|
-| [orkut-clone-client](https://github.com/GShadowBroker/orkut-clone-client) / [orkut-clone-server](https://github.com/marlonprudente/orkut-clone-server) | GraphQL (Apollo), PostgreSQL, Sequelize, Cloudinary, JWT. Apache 2.0 [snippet]. |
-| [Alurakut](https://www.builtatlightspeed.com/theme/mathwcruz-alurakut) | Next.js and React, GitHub login, community creation. Listing says updated Aug 2022. From the Alura immersion course. [snippet] |
-| [hallss93/orkut-clone](https://awesome.ecosyste.ms/projects/github.com%2Fhallss93%2Forkut-clone) | Vue, created July 2023, about 1 star. [snippet] |
-| [GitHub topic: orkut](https://github.com/topics/orkut) | About 27 repos, mostly static layouts. [snippet] |
-| [BuddyRevival](https://github.com/FilipeHSAraujo/BuddyRevival) | Revives BuddyPoke avatars (a Flash app inside Orkut) from the original data files. [snippet] |
+| [GledysonFerreira/orkut-clone-client](https://github.com/GledysonFerreira/orkut-clone-client) / [marlonprudente/orkut-clone-server](https://github.com/marlonprudente/orkut-clone-server) | GraphQL (Apollo), PostgreSQL, Sequelize, Cloudinary, JWT. GitHub reports **no license** for either repo. The earlier "Apache 2.0" note was unverified and is wrong. Do not copy. |
+| [vinixiii/alurakut](https://github.com/vinixiii/alurakut) | **MIT**, ~31 stars. Next.js/React 17, styled-components, GitHub login, profiles, friends, communities, scraps. Educational Alura immersion project backed by GitHub API and DatoCMS. Useful as a UI/layout reference; its auth and data model are not reusable. |
+| [omausantos/alurakut](https://github.com/omausantos/alurakut) | **MIT**, ~22 stars. Same Alurakut lineage and stack as above. |
+| [malucodes/Orkut-Clone](https://github.com/malucodes/Orkut-Clone) | **MIT**. Plain HTML/CSS/JS recreation of profile, scrapbook, communities, friends, and testimonials with JSON fixtures. Closest classic visual reference. The repo bundles the Orkut logo and third-party meme images; reuse layout/CSS ideas, not those branding assets. |
+| [mrpunkdasilva/alurakut](https://github.com/mrpunkdasilva/alurakut) | **MIT**, small. Next.js/React 17 Alurakut variant with Docker. Limited functionality. |
+| [hallss93/orkut-clone](https://awesome.ecosyste.ms/projects/github.com%2Fhallss93%2Forkut-clone) | Vue, created July 2023, about 1 star. GitHub reports **no license**. Do not copy. |
+| [GitHub topic: orkut](https://github.com/topics/orkut) | About 27 repos, mostly static layouts and educational clones; licenses vary. |
+| [BuddyRevival](https://github.com/FilipeHSAraujo/BuddyRevival) | **MIT**. Revives BuddyPoke avatars (a Flash app inside Orkut) from the original data files. |
 
-### 4.4 Gap analysis [mine]
+### 4.4 Reuse decision [mine]
+
+There is no mature, production-grade, permissively licensed Orkut platform to
+adopt. The reusable material is **interface code and information architecture**
+from the MIT Alurakut lineage and `malucodes/Orkut-Clone`, not their auth,
+database, external-service integrations, or assets.
+
+Recommended reuse:
+
+1. Port the classic Orkut information architecture (profile sidebar, friends
+   grid, communities, scraps, testimonials) into this app's Next.js/React 19
+   components.
+2. Reuse MIT CSS/layout ideas with per-file attribution and a repository-level
+   `THIRD_PARTY_NOTICES.md`; do not vendor whole repos or their lockfiles.
+3. Avoid the Orkut logo, wordmark, and bundled meme images. They carry
+   trademark and unclear image rights even when the surrounding code is MIT.
+4. Keep using the MIT Fedify examples for federation, and AGPL-3.0 Hollo as a
+   reference for ActivityPub behavior rather than a code source.
+
+### 4.5 Gap analysis [mine]
 
 What none of the above is (as far as I found):
 - A **federated** Orkut-style network.

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AppShell } from "@/components/app-shell";
+import { EmptyRelationGrid, MiniProfile, OrkutBox } from "@/components/orkut";
+import { findPublicProfileByHandle } from "@/domain/profiles/service";
 import { requireMember } from "@/lib/session";
-import { SignOutButton } from "./sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -11,48 +13,91 @@ export const metadata: Metadata = {
 
 export default async function MemberHomePage() {
   const member = await requireMember();
+  const profile = await findPublicProfileByHandle(member.handle);
 
   return (
-    <main className="member-page">
-      <header className="member-header">
-        <div>
-          <p className="eyebrow">Signed in</p>
-          <h1 className="member-name">{member.publicName}</h1>
-          <p className="member-handle">@{member.handle}</p>
+    <AppShell active="home" member={member}>
+      <div className="orkut-columns">
+        <aside className="orkut-sidebar">
+          <OrkutBox title="Profile">
+            {profile ? (
+              <MiniProfile profile={profile} showPublicLink />
+            ) : (
+              <p>Your profile is still being prepared.</p>
+            )}
+          </OrkutBox>
+
+          <OrkutBox title="Shortcuts">
+            <ul className="side-menu">
+              <li>
+                <Link href="/invitations">Manage invitations</Link>
+              </li>
+              <li>
+                <Link href={`/u/${member.handle}`}>View public profile</Link>
+              </li>
+            </ul>
+          </OrkutBox>
+        </aside>
+
+        <div className="orkut-feed">
+          <OrkutBox title={`Welcome, ${member.publicName}`}>
+            <p className="profile-lede">
+              This is your corner of an invite-only, federated network. Your handle is
+              permanent; the rest of your profile can grow as the product does.
+            </p>
+            <div className="quick-actions">
+              <Link className="primary-link" href="/invitations">
+                Invite someone
+              </Link>
+              <Link className="secondary-button" href={`/u/${member.handle}`}>
+                See your profile
+              </Link>
+            </div>
+          </OrkutBox>
+
+          <OrkutBox title="Your network is starting">
+            <p className="profile-lede">
+              Friendships, scraps, testimonials, communities, and photos arrive in the
+              next slices. Federation comes after the local network is safe and useful.
+            </p>
+            <ul className="next-list">
+              <li>Friends and mutual connections</li>
+              <li>Scrapbooks and testimonials</li>
+              <li>Interest communities</li>
+              <li>ActivityPub federation</li>
+            </ul>
+          </OrkutBox>
+
+          <OrkutBox title="Scraps">
+            <p className="empty-note">
+              Your scrapbook is empty for now. Scraps are planned after friendships.
+            </p>
+          </OrkutBox>
         </div>
-        <nav aria-label="Member tools" className="member-tools">
-          <Link className="primary-link" href="/invitations">
-            Invitations
-          </Link>
-          <SignOutButton />
-        </nav>
-      </header>
 
-      <section aria-labelledby="next-title" className="member-card">
-        <h2 className="member-card-title" id="next-title">
-          Your local network is starting
-        </h2>
-        <p>
-          Profiles, friendships, posts, and communities arrive in the next MVP slices.
-          Your handle is permanent.
-        </p>
-        <dl className="member-facts">
-          <div>
-            <dt>Email</dt>
-            <dd>{member.email}</dd>
-          </div>
-          <div>
-            <dt>Handle</dt>
-            <dd>@{member.handle}</dd>
-          </div>
-        </dl>
-      </section>
+        <aside className="orkut-relations">
+          <OrkutBox title="Friends (0)">
+            <EmptyRelationGrid
+              label="Friends"
+              note="Invite people you trust; mutual friendships come next."
+            />
+          </OrkutBox>
 
-      <p>
-        <Link className="text-link" href="/">
-          Project home
-        </Link>
-      </p>
-    </main>
+          <OrkutBox title="Communities (0)">
+            <EmptyRelationGrid
+              label="Communities"
+              note="Interest communities are planned for a later MVP."
+            />
+          </OrkutBox>
+
+          <OrkutBox title="Invitations">
+            <p className="empty-note">Every member can issue bounded invitation codes.</p>
+            <Link className="text-link" href="/invitations">
+              Manage your invitations
+            </Link>
+          </OrkutBox>
+        </aside>
+      </div>
+    </AppShell>
   );
 }
