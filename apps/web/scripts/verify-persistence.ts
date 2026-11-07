@@ -1,6 +1,6 @@
 import { closeDatabase, getSqlClient } from "../src/db/client";
 import { getInvitationService } from "../src/domain/invitations/service";
-import { auth } from "../src/lib/auth";
+import { getAuth } from "../src/lib/auth";
 
 type ConstraintError = Error & {
   constraint_name?: string;
@@ -20,6 +20,7 @@ async function expectConstraint(
 }
 
 const sql = getSqlClient();
+const auth = getAuth();
 const suffix = crypto.randomUUID();
 const firstUserId = `persistence-first-${suffix}`;
 const secondUserId = `persistence-second-${suffix}`;

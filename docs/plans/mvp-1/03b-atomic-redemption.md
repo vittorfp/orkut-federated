@@ -1,5 +1,11 @@
 # MVP 1.3b: Atomic Invitation Redemption
 
+## Status
+
+Implemented with the compatibility adapter recorded in
+[ADR 0003](../../adr/0003-transactional-credential-provisioning.md). The
+redemption service has no public endpoint or UI yet.
+
 ## Outcome
 
 Exactly one last-use contender creates a Better Auth credential principal,

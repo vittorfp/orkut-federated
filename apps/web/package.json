@@ -8,7 +8,8 @@
     "db:check": "tsx --env-file-if-exists=.env.local scripts/check-database.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
-    "db:verify": "tsx --env-file-if-exists=.env.local scripts/verify-persistence.ts",
+    "db:verify": "tsx --env-file-if-exists=.env.local scripts/verify-persistence.ts && tsx --env-file-if-exists=.env.local scripts/verify-redemption.ts",
+    "db:verify:redemption": "tsx --env-file-if-exists=.env.local scripts/verify-redemption.ts",
     "dev": "next dev",
     "format": "biome check --write .",
     "lint": "biome check .",
@@ -18,6 +19,7 @@
     "worker": "tsx --env-file-if-exists=.env.local src/worker.ts"
   },
   "dependencies": {
+    "@better-auth/core": "1.7.17",
     "@better-auth/drizzle-adapter": "1.7.17",
     "better-auth": "1.7.17",
     "drizzle-orm": "^0.45.4",
