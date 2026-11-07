@@ -153,3 +153,7 @@ vite.config.ts.timestamp-*
 .idea/
 .vscode/
 .context/
+
+# Local environment and database artifacts
+*.local
+next-env.d.ts

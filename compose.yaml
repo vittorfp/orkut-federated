@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: orkut_federated
+      POSTGRES_PASSWORD: orkut
+      POSTGRES_USER: orkut
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orkut -d orkut_federated"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

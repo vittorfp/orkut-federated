@@ -1,0 +1,21 @@
+{
+  "name": "orkut-federated",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "build": "corepack pnpm --filter @orkut-federated/web build",
+    "db:check": "corepack pnpm --filter @orkut-federated/web db:check",
+    "db:generate": "corepack pnpm --filter @orkut-federated/web db:generate",
+    "db:migrate": "corepack pnpm --filter @orkut-federated/web db:migrate",
+    "dev": "corepack pnpm --filter @orkut-federated/web dev",
+    "format": "corepack pnpm --filter @orkut-federated/web format",
+    "lint": "corepack pnpm --filter @orkut-federated/web lint",
+    "start": "corepack pnpm --filter @orkut-federated/web start",
+    "test": "corepack pnpm --filter @orkut-federated/web test",
+    "typecheck": "corepack pnpm --filter @orkut-federated/web typecheck",
+    "worker": "corepack pnpm --filter @orkut-federated/web worker"
+  }
+}
