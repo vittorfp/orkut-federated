@@ -24,3 +24,15 @@ successful invitation redemption.
 ## Exclusions
 
 Passkeys, social login, federation login, and administrator 2FA.
+
+## Implementation notes
+
+Email verification tokens are stateless Better Auth JWTs with a one-hour
+expiry. Reusing a token or verifying an already-verified principal returns
+success without changing state, so the gate interprets "reused tokens fail" as
+"replay cannot grant new access". Verification links are delivered through a
+private local outbox until an SMTP transport exists; see
+[the verification email runbook](../../runbooks/verification-email.md).
+
+`verify-authentication.ts` covers unverified sign-in rejection, outbox
+delivery, verification, session lookup, suspension, and sign-out invalidation.

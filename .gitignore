@@ -157,3 +157,6 @@ vite.config.ts.timestamp-*
 # Local environment and database artifacts
 *.local
 next-env.d.ts
+
+# Local verification-email outbox (contains single-use tokens)
+.mail-outbox/
