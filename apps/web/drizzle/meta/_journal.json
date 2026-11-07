@@ -8,6 +8,13 @@
       "when": 1793914790375,
       "tag": "0000_sad_iron_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793916052842,
+      "tag": "0001_swift_vector",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@
     "db:check": "corepack pnpm --filter @orkut-federated/web db:check",
     "db:generate": "corepack pnpm --filter @orkut-federated/web db:generate",
     "db:migrate": "corepack pnpm --filter @orkut-federated/web db:migrate",
+    "db:verify": "corepack pnpm --filter @orkut-federated/web db:verify",
     "dev": "corepack pnpm --filter @orkut-federated/web dev",
     "format": "corepack pnpm --filter @orkut-federated/web format",
     "lint": "corepack pnpm --filter @orkut-federated/web lint",
