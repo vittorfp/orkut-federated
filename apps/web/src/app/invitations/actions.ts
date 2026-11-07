@@ -5,6 +5,7 @@ import {
   getInvitationService,
   InvitationPolicyError,
 } from "@/domain/invitations/service";
+import { RateLimitExceededError } from "@/lib/rate-limit";
 import { requireMember } from "@/lib/session";
 
 const EXPIRY_DAYS = new Set([1, 7, 30]);
@@ -36,6 +37,11 @@ function policyMessage(code: InvitationPolicyError["code"]): string {
   }
 }
 
+function rateLimitMessage(error: RateLimitExceededError): string {
+  const minutes = Math.max(1, Math.ceil(error.retryAfterSeconds / 60));
+  return `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
+}
+
 export async function issueInvitation(
   _state: IssueInvitationState,
   formData: FormData,
@@ -60,6 +66,9 @@ export async function issueInvitation(
       status: "success",
     };
   } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return { status: "error", message: rateLimitMessage(error) };
+    }
     if (error instanceof InvitationPolicyError) {
       return { status: "error", message: policyMessage(error.code) };
     }
@@ -77,10 +86,18 @@ export async function revokeInvitation(
     return { status: "error", message: "Invitation could not be identified." };
   }
 
-  const revoked = await getInvitationService().revoke({
-    invitationId,
-    inviterUserId: member.userId,
-  });
+  let revoked: boolean;
+  try {
+    revoked = await getInvitationService().revoke({
+      invitationId,
+      inviterUserId: member.userId,
+    });
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return { status: "error", message: rateLimitMessage(error) };
+    }
+    throw error;
+  }
   revalidatePath("/invitations");
 
   if (!revoked) {

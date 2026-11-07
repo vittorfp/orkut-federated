@@ -31,3 +31,16 @@ local Compose volume and migrate from zero.
 The positive repair gate is convergence: a clean database and an upgraded MVP
 0 database must expose the same tables, constraints, indexes, and trigger, and
 must both pass `db:verify`.
+
+## MVP 1 invitation abuse-control migration
+
+`0003_keen_omega_red.sql` adds `audit_events` and `rate_limit_counters`. It is
+additive: existing invitations, members, and profiles are unchanged.
+
+If the migration fails after creating one table, do not edit the applied file.
+Ship a numbered forward repair migration. The operational consequence of
+running without it is that invitation issue/revoke/redemption calls fail when
+they try to write audit or rate-limit rows, so apply it before starting the new
+web process. After it is applied, run `corepack pnpm db:verify` to exercise the
+abuse-control invariants and `corepack pnpm security:prune` to confirm the
+retention path.
