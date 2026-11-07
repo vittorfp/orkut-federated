@@ -13,8 +13,9 @@ invite-only beta for 100 trusted adults, delivered as a responsive web PWA.
 
 The repository contains the executable MVP 0 foundation and the first MVP 1
 slices. Public sign-up is disabled. Invited users can redeem an invitation and
-sign in to a protected member page with a verified email and password.
-Invitation management and profile onboarding have no public UI yet.
+sign in to a protected member page with a verified email and password. Signed-in
+members can issue, list, copy once, and revoke invitation codes. Profile
+onboarding and the public invitation-redemption flow have no UI yet.
 
 - [Initial implementation plan](docs/initial-plan.md)
 - [Fractal delivery roadmap](docs/plans/README.md)
@@ -79,10 +80,10 @@ corepack pnpm test
 corepack pnpm build
 ```
 
-With PostgreSQL running, verify the persistence, redemption, and
-authentication invariants (`db:verify` runs all three suites;
-`db:verify:redemption` runs only the two-connection concurrency and rollback
-suite):
+With PostgreSQL running, verify the persistence, redemption, authentication,
+and invitation-management invariants (`db:verify` runs all four suites;
+`db:verify:redemption` and `db:verify:invitations` run only their focused
+suites):
 
 ```sh
 corepack pnpm db:verify

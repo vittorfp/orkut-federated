@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
 import { invitations, members } from "@/db/schema";
 
@@ -22,6 +22,7 @@ export type NewInvitation = {
 export interface InvitationStore {
   insertForActiveInviter(invitation: NewInvitation): Promise<InvitationRecord | null>;
   findByDigest(codeDigest: string): Promise<InvitationRecord | null>;
+  listOwned(inviterUserId: string): Promise<InvitationRecord[]>;
   revokeOwned(input: { invitationId: string; inviterUserId: string }): Promise<boolean>;
 }
 
@@ -73,6 +74,23 @@ export function createDrizzleInvitationStore(
         .where(eq(invitations.codeDigest, codeDigest))
         .limit(1);
       return invitation ?? null;
+    },
+
+    async listOwned(inviterUserId) {
+      return database
+        .select({
+          id: invitations.id,
+          inviterUserId: invitations.inviterUserId,
+          maxUses: invitations.maxUses,
+          useCount: invitations.useCount,
+          expiresAt: invitations.expiresAt,
+          revokedAt: invitations.revokedAt,
+          createdAt: invitations.createdAt,
+        })
+        .from(invitations)
+        .where(eq(invitations.inviterUserId, inviterUserId))
+        .orderBy(desc(invitations.createdAt))
+        .limit(50);
     },
 
     async revokeOwned({ invitationId, inviterUserId }) {

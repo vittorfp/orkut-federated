@@ -29,6 +29,12 @@ class MemoryInvitationStore implements InvitationStore {
     return this.invitations.find((item) => item.codeDigest === codeDigest) ?? null;
   }
 
+  async listOwned(inviterUserId: string): Promise<InvitationRecord[]> {
+    return this.invitations.filter(
+      (invitation) => invitation.inviterUserId === inviterUserId,
+    );
+  }
+
   async revokeOwned(input: {
     invitationId: string;
     inviterUserId: string;
@@ -123,6 +129,31 @@ describe("invitation service", () => {
       inviterUserId: "active-user",
     });
     expect(await service.preview(code)).toEqual({ available: true });
+  });
+
+  it("lists only owned metadata with a derived status and without digests", async () => {
+    store.activeUsers.add("another-active-user");
+    const first = await service.issue({
+      expiresAt: new Date("2026-11-07T12:00:00.000Z"),
+      inviterUserId: "active-user",
+    });
+    await service.issue({
+      expiresAt: new Date("2026-11-07T12:00:00.000Z"),
+      inviterUserId: "another-active-user",
+    });
+
+    const listed = await service.listOwned("active-user");
+    expect(listed).toHaveLength(1);
+    expect(listed[0]).toMatchObject({
+      id: first.invitation.id,
+      maxUses: 1,
+      status: "available",
+      useCount: 0,
+    });
+    expect(listed[0]).not.toHaveProperty("codeDigest");
+    expect(JSON.stringify(listed)).not.toContain(code);
+    expect(await service.listOwned("another-active-user")).toHaveLength(1);
+    expect(await service.listOwned("unknown-user")).toEqual([]);
   });
 
   it("allows only an active invitation owner to revoke once", async () => {
