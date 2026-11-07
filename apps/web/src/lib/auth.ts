@@ -2,6 +2,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { getDatabase } from "@/db/client";
 import * as databaseSchema from "@/db/schema";
+import { getVerificationEmailTransport } from "./email-verification";
 import { readServerEnvironment } from "./env";
 
 let cachedAuthOptions: BetterAuthOptions | undefined;
@@ -21,6 +22,13 @@ function createAuthOptions(): BetterAuthOptions {
       disableSignUp: true,
       enabled: true,
       requireEmailVerification: true,
+    },
+    emailVerification: {
+      expiresIn: 60 * 60,
+      sendOnSignUp: false,
+      sendVerificationEmail: async ({ user, url }) => {
+        await getVerificationEmailTransport().send({ to: user.email, url });
+      },
     },
     secret: environment.BETTER_AUTH_SECRET,
   };

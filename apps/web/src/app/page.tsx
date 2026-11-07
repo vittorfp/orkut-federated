@@ -1,10 +1,10 @@
 const milestones = [
-  "Repository architecture",
-  "Application scaffold",
-  "Local infrastructure",
-  "Database baseline",
-  "Runtime baseline",
-  "Continuous integration",
+  "Persistence ownership",
+  "Invitation lifecycle",
+  "Atomic redemption",
+  "Member authentication",
+  "Invitation management UI",
+  "Profile onboarding",
 ];
 
 function BotanicalMark() {
@@ -56,15 +56,16 @@ export default function Home() {
           Orkut Federated
         </a>
         <nav aria-label="Project links">
-          <a href="https://github.com/vittorfp/orkut-federated/tree/docs/initial-research-plan/docs/plans">
+          <a href="https://github.com/vittorfp/orkut-federated/tree/main/docs/plans">
             Roadmap
           </a>
-          <a href="https://github.com/vittorfp/orkut-federated/blob/docs/initial-research-plan/docs/research/orkut-viability.md">
+          <a href="https://github.com/vittorfp/orkut-federated/blob/main/docs/research/orkut-viability.md">
             Research
           </a>
-          <a href="https://github.com/vittorfp/orkut-federated/blob/docs/initial-research-plan/CONTRIBUTING.md">
+          <a href="https://github.com/vittorfp/orkut-federated/blob/main/CONTRIBUTING.md">
             Contributing
           </a>
+          <a href="/login">Sign in</a>
         </nav>
       </header>
 
@@ -79,7 +80,7 @@ export default function Home() {
           </p>
           <a
             className="primary-link"
-            href="https://github.com/vittorfp/orkut-federated/tree/docs/initial-research-plan/docs/plans"
+            href="https://github.com/vittorfp/orkut-federated/tree/main/docs/plans"
           >
             Read the roadmap
           </a>
@@ -91,9 +92,10 @@ export default function Home() {
 
       <section aria-labelledby="current-build" className="current-build">
         <h2 id="current-build">Current build</h2>
-        <p className="phase-name">MVP 0 · Executable foundation</p>
+        <p className="phase-name">MVP 1 · Invite-only local network</p>
         <p className="phase-summary">
-          Tooling, database, health checks, worker boundary, tests, and CI.
+          Persistence ownership, invitation lifecycle, atomic redemption, and member
+          sign-in.
         </p>
         <ol className="milestones">
           {milestones.map((milestone, index) => (
