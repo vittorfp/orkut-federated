@@ -1,4 +1,5 @@
 import { closeDatabase, getSqlClient } from "../src/db/client";
+import { getInvitationService } from "../src/domain/invitations/service";
 import { auth } from "../src/lib/auth";
 
 type ConstraintError = Error & {
@@ -25,6 +26,8 @@ const secondUserId = `persistence-second-${suffix}`;
 const firstEmail = `first-${suffix}@example.test`;
 const secondEmail = `second-${suffix}@example.test`;
 const handle = `test_${suffix.replaceAll("-", "").slice(0, 16)}`;
+const firstInvitationDigest = "a".repeat(64);
+const secondInvitationDigest = "b".repeat(64);
 
 try {
   await auth.api.getSession({ headers: new Headers() });
@@ -96,8 +99,126 @@ try {
     () => sql`insert into members (user_id) values (${`missing-${suffix}`})`,
   );
 
+  const [createdInvitation] = await sql<{ id: string }[]>`
+    insert into invitations (code_digest, inviter_user_id, max_uses, expires_at)
+    values (${firstInvitationDigest}, ${firstUserId}, 2, now() + interval '1 day')
+    returning id
+  `;
+  if (!createdInvitation) throw new Error("valid invitation was not created");
+  const firstInvitationId = createdInvitation.id;
+
+  await expectConstraint(
+    "invitations_code_digest_format",
+    () => sql`
+      insert into invitations (code_digest, inviter_user_id, expires_at)
+      values ('not-a-digest', ${firstUserId}, now() + interval '1 day')
+    `,
+  );
+
+  await expectConstraint(
+    "invitations_max_uses_range",
+    () => sql`
+      insert into invitations (code_digest, inviter_user_id, max_uses, expires_at)
+      values (${"c".repeat(64)}, ${firstUserId}, 0, now() + interval '1 day')
+    `,
+  );
+
+  await expectConstraint(
+    "invitations_use_count_range",
+    () => sql`
+      update invitations set use_count = 3 where id = ${firstInvitationId}
+    `,
+  );
+
+  await expectConstraint(
+    "invitations_expiry_after_creation",
+    () => sql`
+      insert into invitations (code_digest, inviter_user_id, expires_at)
+      values (${"d".repeat(64)}, ${firstUserId}, now() - interval '1 day')
+    `,
+  );
+
+  await expectConstraint(
+    "invitations_revocation_after_creation",
+    () => sql`
+      update invitations
+      set revoked_at = created_at - interval '1 second'
+      where id = ${firstInvitationId}
+    `,
+  );
+
+  await expectConstraint(
+    "invitations_code_digest_unique",
+    () => sql`
+      insert into invitations (code_digest, inviter_user_id, expires_at)
+      values (${firstInvitationDigest}, ${firstUserId}, now() + interval '1 day')
+    `,
+  );
+
+  await sql`
+    insert into invitation_redemptions (invitation_id, user_id)
+    values (${firstInvitationId}, ${secondUserId})
+  `;
+
+  const [secondInvitation] = await sql<{ id: string }[]>`
+    insert into invitations (code_digest, inviter_user_id, expires_at)
+    values (${secondInvitationDigest}, ${firstUserId}, now() + interval '1 day')
+    returning id
+  `;
+  if (!secondInvitation) throw new Error("second valid invitation was not created");
+
+  await expectConstraint(
+    "invitation_redemptions_user_unique",
+    () => sql`
+      insert into invitation_redemptions (invitation_id, user_id)
+      values (${secondInvitation.id}, ${secondUserId})
+    `,
+  );
+
+  await sql`
+    update invitations set use_count = max_uses where id = ${firstInvitationId}
+  `;
+
+  const invitationService = getInvitationService();
+  if (
+    await invitationService.revoke({
+      invitationId: firstInvitationId,
+      inviterUserId: firstUserId,
+    })
+  ) {
+    throw new Error("invitation service revoked an exhausted invitation");
+  }
+  const serviceIssued = await invitationService.issue({
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    inviterUserId: firstUserId,
+  });
+  const [storedServiceInvitation] = await sql<{ code_digest: string }[]>`
+    select code_digest from invitations where id = ${serviceIssued.invitation.id}
+  `;
+  if (
+    !storedServiceInvitation ||
+    storedServiceInvitation.code_digest === serviceIssued.code
+  ) {
+    throw new Error("invitation service persisted a plaintext code");
+  }
+  if (!(await invitationService.preview(serviceIssued.code)).available) {
+    throw new Error("new invitation was not available to preview");
+  }
+  if (
+    !(await invitationService.revoke({
+      invitationId: serviceIssued.invitation.id,
+      inviterUserId: firstUserId,
+    }))
+  ) {
+    throw new Error("invitation owner could not revoke an active invitation");
+  }
+  if ((await invitationService.preview(serviceIssued.code)).available) {
+    throw new Error("revoked invitation remained available");
+  }
+
   process.stdout.write("persistence invariants: ok\n");
 } finally {
+  await sql`delete from invitations where inviter_user_id = ${firstUserId}`;
   await sql`delete from users where id in (${firstUserId}, ${secondUserId})`;
   await closeDatabase();
 }

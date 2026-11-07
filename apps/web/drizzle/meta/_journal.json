@@ -15,6 +15,13 @@
       "when": 1793916052842,
       "tag": "0001_swift_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793955605062,
+      "tag": "0002_stale_brood",
+      "breakpoints": true
     }
   ]
 }
